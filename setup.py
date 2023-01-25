@@ -1,4 +1,4 @@
-import face_recognition
+# import face_recognition
 import cv2
 import pickle
 import os
@@ -8,10 +8,11 @@ import numpy as np
 from pathlib import Path
 import glob
 img_store_path = "data/saved_images/"
-rgb_cam_device = 3
-inf_cam_device = 2
+rgb_cam_device = 2
+inf_cam_device = 0
 
 
+        
 
 def register(name):
 	#Create images folder
@@ -49,13 +50,31 @@ def register(name):
 			cv2.destroyAllWindows()
 			break
 		elif k % 256 == 32:
-			# SPACE pressed
-			img_name = str(numberOfFile)+".png"
-			cv2.imwrite(img_name, frame)
-			print("{} written!".format(img_name))
-			os.replace(str(numberOfFile)+".png", img_store_path+name.lower()+"/"+str(numberOfFile)+".png")
+            #  Hit SPACE
+			img_name = str(numberOfFile)+"_rgb.png"
+			img_name_inf = str(numberOfFile)+"_inf.png"
+			cv2.imwrite(img_name, frame1)
+			cv2.imwrite(img_name_inf,frame2)
+			print("{} and {} was written".format(img_name,img_name_inf))
+			#move files to user path
+			os.replace(img_name, img_store_path+name.lower()+"/"+img_name)
+			os.replace(img_name_inf, img_store_path+name.lower()+"/"+img_name_inf)
 			cam1.release()
 			cam2.release()
 			cv2.destroyAllWindows()
 			break
-        
+
+
+    
+
+
+
+def identify():
+    #TODO: reload data after new registers
+    
+    
+    
+
+
+
+# register("Test_ID")
