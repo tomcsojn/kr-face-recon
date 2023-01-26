@@ -100,6 +100,7 @@ class Dlib_handler:
                     validated = distance.euclidean(embedding,face) < 0.6
                     if validated:
                         print("validated with id {}".format(k))
+                        self.running = False
                         return k
 
 
