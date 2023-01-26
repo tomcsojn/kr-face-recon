@@ -9,7 +9,7 @@ import cv2
 import pickle
 import os
 import numpy as np
-
+from scipy.spatial import distance
 
 from pathlib import Path
 import glob
@@ -18,10 +18,9 @@ import glob
 
 class Dlib_handler:
     
-    
     def __init__(self,rgb_cam_device,inf_cam_device):
         self.img_store_path = "data/saved_images/"
-        self.label_file_path = "data/known_faces.pickle"
+        self.known_faces_path = "data/known_faces.pickle"
         self.rgb_cam_device=rgb_cam_device
         self.inf_cam_device=inf_cam_device
         
@@ -35,18 +34,17 @@ class Dlib_handler:
         self.sp = dlib.shape_predictor(self.predictor_path)
         self.facerec = dlib.face_recognition_model_v1(self.face_rec_model_path)
         
-        
-        try:
-            with open("/"+self.label_file_path,"rb") as f:
-                self.labels = pickle.load(f)
-                print(self.labels)
-        except FileNotFoundError:
-            print("No labels file found, creating new")
+        self._load_face_embeddings()
             
 
 
-    def registerFaces(self,resampling):
+    def registerFaces(self,resampling,re_register :bool =False):
         for folder in glob.glob(self.img_store_path+"/*"):
+            user_id = folder.split("/")[-1]
+            if(!re_register):
+                #if not full re_register initiated, skip already existing users
+                if(self.known_faces.has_key(user_id)):
+                    continue
             # check folders
             for file in glob.glob(folder+"/*_rgb.png"):
                 #extract foldername as ID
@@ -62,12 +60,18 @@ class Dlib_handler:
                 shape = self.sp(img, d)
                 # compute face descriptor embeddings with given resampling number, and fixed padding
                 embedding = self.facerec.compute_face_descriptor(img, shape, resampling, 0.25)
-                
-                #save embedding with id pair
-                
-                
+                #add embedding with id pair
+                self.known_faces[user_id] = embedding
                 #break after first sucessful face we don't need multiple embeddings now
                 break
+        self._save_face_embeddings(self.known_faces)
+    def _save_face_embeddings(self,faces:dict):
+        #TODO should change up pickle if reaches 2 GB
+        if(len(faces)):
+            pickle.dump(known_faces,open(self.known_faces_path,"wb"))
+    def _load_face_embeddings(self):
+        faces = pickle.load(open(self.known_faces_path,"rb"))
+        self.known_faces = faces
                 
                 
     def ID(self):
@@ -80,18 +84,23 @@ class Dlib_handler:
             small_frame = cv2.resize(frame, (0,0), fx = 0.5, fy = 0.5)
             # change to black and white
             small_frame = small_frame[:,:,::-1]
-            if self.running:
-                #search faces
-                locations = face_recognition.face_locations(frame)
-
-                #encode face
-                embeddings = face_recognition.face_encodings(frame,locations)
-                #looping through encodings
-                for embedding in embeddings:
-                    #loop through known faces
-                    for face in self.known_faces:
-                        #COMPARE
-                        matches = face_recognition.compare_faces([face[1]],embedding)
+  
+            #detect faces, upsample by 1
+            detections = self.detector(frame, 1)
+            print("Number of faces detected: {}".format(len(dets)))
+            for k, d in enumerate(detections):
+                #get face landmarks
+                shape = sp(img, d)
+                # compute face descriptor embeddings with given resampling number, and fixed padding
+                embedding = self.facerec.compute_face_descriptor(img, shape, 1, 0.25)
+                #loop through known faces
+                #Early abortion on first match instead of findig best
+                for k,face in self.known_faces.items():
+                    #COMPARE
+                    validated = distance.euclidean(embedding,face) < 0.6
+                    if validated:
+                        print("validated with id {}".format(k))
+                        return k
 
 
                 
