@@ -69,12 +69,5 @@ def register(name):
 
 
 
-def identify():
-    #TODO: reload data after new registers
-    
-    
-    
 
-
-
-# register("Test_ID")
+register("Tamas_ID")

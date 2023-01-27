@@ -41,7 +41,7 @@ class Dlib_handler:
     def registerFaces(self,resampling,re_register :bool =False):
         for folder in glob.glob(self.img_store_path+"/*"):
             user_id = folder.split("/")[-1]
-            if(!re_register):
+            if(not re_register):
                 #if not full re_register initiated, skip already existing users
                 if(self.known_faces.has_key(user_id)):
                     continue
@@ -68,31 +68,38 @@ class Dlib_handler:
     def _save_face_embeddings(self,faces:dict):
         #TODO should change up pickle if reaches 2 GB
         if(len(faces)):
-            pickle.dump(known_faces,open(self.known_faces_path,"wb"))
+            pickle.dump(faces,open(self.known_faces_path,"wb"))
     def _load_face_embeddings(self):
-        faces = pickle.load(open(self.known_faces_path,"rb"))
-        self.known_faces = faces
+        try:
+            faces = pickle.load(open(self.known_faces_path,"rb"))
+            self.known_faces = faces
+        except FileNotFoundError:
+            print("known faces not found please register faces")
                 
-                
-    def ID(self):
-        cam = cv2.VideoCapture(self.rgb_cam_device)
-        self.running = True
-        self.recognized = []
-        while self.running:
-            ret,frame = cam.read()
-            #resize
-            small_frame = cv2.resize(frame, (0,0), fx = 0.5, fy = 0.5)
-            # change to black and white
-            small_frame = small_frame[:,:,::-1]
+    
+    
+    
+    
+    
+    def ID(self,frame):
+        # cam = cv2.VideoCapture(self.rgb_cam_device)
+        # self.running = True
+        # self.recognized = []
+        # while self.running:
+        #     ret,frame = cam.read()
+        #     #resize
+        #     small_frame = cv2.resize(frame, (0,0), fx = 0.5, fy = 0.5)
+        #     # change to black and white
+        #     small_frame = small_frame[:,:,::-1]
   
             #detect faces, upsample by 1
             detections = self.detector(frame, 1)
-            print("Number of faces detected: {}".format(len(dets)))
+            print("Number of faces detected: {}".format(len(detections)))
             for k, d in enumerate(detections):
                 #get face landmarks
-                shape = sp(img, d)
+                shape = self.sp(frame, d)
                 # compute face descriptor embeddings with given resampling number, and fixed padding
-                embedding = self.facerec.compute_face_descriptor(img, shape, 1, 0.25)
+                embedding = self.facerec.compute_face_descriptor(frame, shape, 1, 0.25)
                 #loop through known faces
                 #Early abortion on first match instead of findig best
                 for k,face in self.known_faces.items():
@@ -100,8 +107,9 @@ class Dlib_handler:
                     validated = distance.euclidean(embedding,face) < 0.6
                     if validated:
                         print("validated with id {}".format(k))
-                        self.running = False
+                        # self.running = False
                         return k
+            return False
 
 
                 
