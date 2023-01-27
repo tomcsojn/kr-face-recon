@@ -38,12 +38,12 @@ class Dlib_handler:
             
 
 
-    def registerFaces(self,resampling,re_register :bool =False):
+    def registerFaces(self,resampling:int = 50,re_register :bool =False):
         for folder in glob.glob(self.img_store_path+"/*"):
-            user_id = folder.split("/")[-1]
+            user_id = os.path.basename(os.path.normpath(folder))
             if(not re_register):
                 #if not full re_register initiated, skip already existing users
-                if(self.known_faces.has_key(user_id)):
+                if(user_id in self.known_faces):
                     continue
             # check folders
             for file in glob.glob(folder+"/*_rgb.png"):
@@ -69,6 +69,7 @@ class Dlib_handler:
         #TODO should change up pickle if reaches 2 GB
         if(len(faces)):
             pickle.dump(faces,open(self.known_faces_path,"wb"))
+            
     def _load_face_embeddings(self):
         try:
             faces = pickle.load(open(self.known_faces_path,"rb"))
@@ -116,3 +117,4 @@ class Dlib_handler:
 # %% Main
 if __name__ == "__main__":
     handler = Dlib_handler(2,0)
+    faces = handler.known_faces.keys()
