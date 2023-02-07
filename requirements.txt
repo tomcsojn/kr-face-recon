@@ -1,0 +1,6 @@
+scipy
+numpy
+opencv-python
+pickle
+glob
+
