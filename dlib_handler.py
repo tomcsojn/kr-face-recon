@@ -103,14 +103,22 @@ class Dlib_handler:
                 embedding = self.facerec.compute_face_descriptor(frame, shape, 1, 0.25)
                 #loop through known faces
                 #Early abortion on first match instead of findig best
-                for k,face in self.known_faces.items():
+                for fk,face in self.known_faces.items():
                     #COMPARE
+                    print(fk)
                     validated = distance.euclidean(embedding,face) < 0.6
                     if validated:
-                        print("validated with id {}".format(k))
+                        print("validated with id {}".format(fk))
                         # self.running = False
-                        return k
+                        return fk
             return False
+
+# val = a["Obama_ID"]
+# for i in range(1000):
+#     a["test-{}".format(i)] = val
+
+# for k,f in a.items():
+#     print(k)
 
 
                 

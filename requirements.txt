@@ -1,6 +1,5 @@
 scipy
 numpy
 opencv-python
-pickle
-glob
+glob2
 
