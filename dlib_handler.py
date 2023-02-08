@@ -105,7 +105,6 @@ class Dlib_handler:
                 #Early abortion on first match instead of findig best
                 for fk,face in self.known_faces.items():
                     #COMPARE
-                    print(fk)
                     validated = distance.euclidean(embedding,face) < 0.6
                     if validated:
                         print("validated with id {}".format(fk))
