@@ -64,7 +64,7 @@ def headless_test():
 
 
 
-
-headless_test()
-# GUI_test()
+if __name__ == "__main__":
+    headless_test()
+    # GUI_test()
 
